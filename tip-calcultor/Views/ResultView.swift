@@ -8,7 +8,7 @@
 import UIKit
 
 class ResultView: UIView {
-    
+    // MARK: - UI
     private let headerLabel = {
         LabelFactory.build(text: "Total p/person", font: ThemeFont.semiBold(ofSize: 18))
     }()
@@ -33,11 +33,19 @@ class ResultView: UIView {
         return view
     }()
     
+    private let totalBill: AmountView = {
+        AmountView(title: "Total bill", textAlignment: .left)
+    }()
+    
+    private let totalTip: AmountView = {
+        AmountView(title: "Total tip", textAlignment: .right)
+    }()
+    
     private lazy var hStackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [
-            AmountView(title: "Total Bill", textAlignment: .left),
+            totalBill,
             UIView(),
-            AmountView(title: "Total Tip", textAlignment: .right),
+            totalTip
         ])
         stackView.axis = .horizontal
         stackView.distribution = .fillEqually
@@ -57,6 +65,7 @@ class ResultView: UIView {
         return stackView
     }()
     
+    // MARK: - Initialization
     init() {
         super.init(frame: .zero)
         layout()
@@ -66,6 +75,7 @@ class ResultView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Private Methods
     private func layout() {
         backgroundColor = .white
         addSubview(vStackView)
@@ -88,6 +98,18 @@ class ResultView: UIView {
         let view = UIView()
         view.heightAnchor.constraint(equalToConstant: height).isActive = true
         return view
+    }
+    
+    // MARK: - Public Methods
+    func configure(_ result: Result) {
+        let text = NSMutableAttributedString(
+            string: result.amountPerPerson.currencyFormatt,
+            attributes: [.font : ThemeFont.bold(ofSize: 48)]
+        )
+        text.addAttributes([.font : ThemeFont.bold(ofSize: 24)], range: NSMakeRange(0, 1))
+        self.amountPerPersonLabel.attributedText = text
+        self.totalBill.configure(result.totalBill)
+        self.totalTip.configure(result.totalTip)
     }
 }
 

@@ -96,7 +96,7 @@ class TipInputView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Methods
+    // MARK: - Private Methods
     private func layout() {
         [headerView, buttonsStackView].forEach(addSubview(_:))
         buttonsStackView.snp.makeConstraints { make in
@@ -183,6 +183,11 @@ class TipInputView: UIView {
         text.addAttributes([.font : ThemeFont.semiBold(ofSize: 14)], range: NSMakeRange(2, 1))
         button.setAttributedTitle(text, for: .normal)
         return button
+    }
+    
+    // MARK: - Public Methods
+    func reset() {
+        tipSubject.send(.none)
     }
 }
 

@@ -9,10 +9,11 @@ import UIKit
 
 
 class AmountView: UIView {
-    //MARK: Customizable Properties
+    //MARK: - Properties
     private let title: String
     private let textAlignment: NSTextAlignment
     
+    //MARK: - UI
     private lazy var titleLabel: UILabel = {
         LabelFactory.build(
             text: title,
@@ -44,6 +45,7 @@ class AmountView: UIView {
         return stackView
     }()
     
+    //MARK: - Initialization
     init(title: String, textAlignment: NSTextAlignment) {
         self.title = title
         self.textAlignment = textAlignment
@@ -55,6 +57,7 @@ class AmountView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    //MARK: - Private Methods
     private func layout() {
         addSubview(vStackView)
         vStackView.snp.makeConstraints { make in
@@ -63,5 +66,16 @@ class AmountView: UIView {
             make.trailing.equalToSuperview()
             make.bottom.equalToSuperview()
         }
+    }
+    
+    
+    //MARK: - Public Methods
+    func configure(_ value: Double) {
+        let text = NSMutableAttributedString(
+            string: "\(value.currencyFormatt)",
+            attributes: [.font : ThemeFont.bold(ofSize: 24)]
+        )
+        text.addAttributes([.font : ThemeFont.bold(ofSize: 16)], range: NSMakeRange(0, 1))
+        amountLabel.attributedText = text
     }
 }
