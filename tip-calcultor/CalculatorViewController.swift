@@ -7,9 +7,14 @@
 
 import UIKit
 import SnapKit
+import Combine
 
 class CalculatorViewController: UIViewController {
+    // MARK: - Properties
+    private let vm = CalculatorViewModel()
+    private var cancellables = Set<AnyCancellable>()
     
+    // MARK: - UI
     private let logoView = LogoView()
     private let resultView = ResultView()
     private let billInputView = BillInputView()
@@ -30,12 +35,14 @@ class CalculatorViewController: UIViewController {
         return vStack
     }()
     
+    // MARK: - Life cicle
     override func viewDidLoad() {
         super.viewDidLoad()
         layout()
+        bind()
     }
     
-    
+    // MARK: - Methods
     private func layout() {
         view.backgroundColor = ThemeColor.bg
         view.addSubview(vStackView)
@@ -66,7 +73,18 @@ class CalculatorViewController: UIViewController {
             make.height.equalTo(56)
         }
     }
-
-
+    
+    private func bind() {
+        let input = CalculatorViewModel.Input(
+            billPublisher: billInputView.valuePublisher,
+            tipPublisher: tipInputView.valuePublisher,
+            splitPublisher: splitInputView.valuePublisher
+        )
+        let output = vm.transform(input: input)
+        
+        output.updateViewPublisher.sink { result in
+            print(result)
+        }.store(in: &cancellables)
+    }
 }
 
