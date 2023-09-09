@@ -74,7 +74,7 @@ class SplitInputView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Methods
+    // MARK: - Private Methods
     private func layout() {
         [headerView, hStackView].forEach(addSubview(_:))
         
@@ -113,5 +113,10 @@ class SplitInputView: UIView {
         button.addRoundedCorners(corners: corners)
         return button
         
+    }
+    
+    // MARK: - Public Methods
+    func reset() {
+        splitSubject.send(1)
     }
 }

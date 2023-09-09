@@ -12,17 +12,25 @@ import Combine
 class CalculatorViewModel {
     // MARK: - Properties
     private var cancellable = Set<AnyCancellable>()
+    private let audioPlayer: AudioPlayerService
+    
+    // MARK: - Initialization
+    init( audioPlayer: AudioPlayerService = DefaultAudioPlayer()) {
+        self.audioPlayer = audioPlayer
+    }
     
     // MARK: - Data FROM the ViewController
     struct Input {
         let billPublisher: AnyPublisher<Double, Never>
         let tipPublisher: AnyPublisher<Tip, Never>
         let splitPublisher: AnyPublisher<Int, Never>
+        let logoViewTapPublisher: AnyPublisher<Void, Never>
     }
     
     // MARK: - Data for the ViewController
     struct Output {
         let updateViewPublisher: AnyPublisher<Result, Never>
+        let resetCalculatorPublisher: AnyPublisher<Void, Never>
     }
     
     // MARK: - Public Methods
@@ -38,7 +46,15 @@ class CalculatorViewModel {
         }
         .eraseToAnyPublisher()
         
-        return Output(updateViewPublisher: updateViewPublisher)
+        let resultCalculatorPublisher = input
+          .logoViewTapPublisher
+          .handleEvents(receiveOutput: { [weak self] in
+              self?.audioPlayer.playSound()
+        }).flatMap {
+          return Just($0)
+        }.eraseToAnyPublisher()
+        
+        return Output(updateViewPublisher: updateViewPublisher, resetCalculatorPublisher: resultCalculatorPublisher)
     }
     
     // MARK: - Private Methods

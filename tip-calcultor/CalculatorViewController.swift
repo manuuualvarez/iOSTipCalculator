@@ -8,11 +8,27 @@
 import UIKit
 import SnapKit
 import Combine
+import CombineCocoa
 
 class CalculatorViewController: UIViewController {
     // MARK: - Properties
     private let vm = CalculatorViewModel()
     private var cancellables = Set<AnyCancellable>()
+    private lazy var viewTapPublisher: AnyPublisher<Void, Never> = {
+        let tapGesture = UITapGestureRecognizer(target: self, action: nil)
+        view.addGestureRecognizer(tapGesture)
+        return tapGesture.tapPublisher.flatMap { _ in
+            Just(())
+        }.eraseToAnyPublisher()
+    }()
+    private lazy var logoViewTapPublisher: AnyPublisher<Void, Never> = {
+        let tapGesture = UITapGestureRecognizer(target: self, action: nil)
+        
+        logoView.addGestureRecognizer(tapGesture)
+        return tapGesture.tapPublisher.flatMap { _ in
+            Just(())
+        }.eraseToAnyPublisher()
+    }()
     
     // MARK: - UI
     private let logoView = LogoView()
@@ -40,9 +56,10 @@ class CalculatorViewController: UIViewController {
         super.viewDidLoad()
         layout()
         bind()
+        observe()
     }
     
-    // MARK: - Methods
+    // MARK: - Private Methods
     private func layout() {
         view.backgroundColor = ThemeColor.bg
         view.addSubview(vStackView)
@@ -78,12 +95,37 @@ class CalculatorViewController: UIViewController {
         let input = CalculatorViewModel.Input(
             billPublisher: billInputView.valuePublisher,
             tipPublisher: tipInputView.valuePublisher,
-            splitPublisher: splitInputView.valuePublisher
+            splitPublisher: splitInputView.valuePublisher,
+            logoViewTapPublisher: logoViewTapPublisher
         )
         let output = vm.transform(input: input)
         
-        output.updateViewPublisher.sink { result in
-            print(result)
+        output.updateViewPublisher.sink { [weak self] result in
+            self?.resultView.configure(result)
+        }.store(in: &cancellables)
+        
+        output.resetCalculatorPublisher.sink { [weak self] result in
+            self?.billInputView.reset()
+            self?.tipInputView.reset()
+            self?.splitInputView.reset()
+            UIView.animate(
+              withDuration: 0.1,
+              delay: 0,
+              usingSpringWithDamping: 5.0,
+              initialSpringVelocity: 0.5,
+              options: .curveEaseInOut) {
+                self?.logoView.transform = .init(scaleX: 1.5, y: 1.5)
+              } completion: { _ in
+                UIView.animate(withDuration: 0.1) {
+                  self?.logoView.transform = .identity
+                }
+              }
+        }.store(in: &cancellables)
+    }
+    
+    private func observe() {
+        viewTapPublisher.sink { [weak self] _ in
+            self?.view.endEditing(true)
         }.store(in: &cancellables)
     }
 }
