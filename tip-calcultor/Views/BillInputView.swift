@@ -6,9 +6,18 @@
 //
 
 import UIKit
+import Combine
+import CombineCocoa
 
 class BillInputView: UIView {
-    
+    // MARK: - Properties;
+    private var cancellables = Set<AnyCancellable>()
+
+    private let billSubject: PassthroughSubject<Double, Never> = .init()
+    var valuePublisher: AnyPublisher<Double, Never> {
+        return billSubject.eraseToAnyPublisher()
+    }
+    // MARK: - UI
     private let headerView : HeaderView = {
         let view = HeaderView()
         view.configure(topText: "Enter", bottomText: "your bill")
@@ -48,15 +57,18 @@ class BillInputView: UIView {
         return tf
     }()
     
+    // MARK: - Initialization
     init() {
         super.init(frame: .zero)
         layout()
+        observe()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Private Methods
     private func layout() {
         [headerView, textfieldContainerView].forEach(addSubview(_:))
         
@@ -84,6 +96,12 @@ class BillInputView: UIView {
             make.leading.equalTo(currencyDenomainateLabel.snp.trailing).offset(16)
             make.trailing.equalTo(textfieldContainerView.snp.trailing).offset(-16)
         }
+    }
+    
+    private func observe() {
+        textField.textPublisher.sink { [weak self] textStr in
+            self?.billSubject.send(textStr?.doubleValue ?? 0)
+        }.store(in: &cancellables)
     }
     
     @objc private func doneButtonTapped() {
